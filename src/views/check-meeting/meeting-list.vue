@@ -35,19 +35,19 @@
           :sortable="'custom'" />
         <el-table-column
           label="申请时间"
-          min-width="122px">
+          min-width="124px">
           <template slot-scope="scope">
             <span >{{scope.row.createdAt}}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="会见时间"
-          min-width="135px" :sortable="'custom'" prop="meetingTime">
+          min-width="138px" :sortable="'custom'" prop="meetingTime">
           <template slot-scope="scope">
-            <span >{{scope.row.meetingTime}}</span>
+            <span >{{scope.row.meetingTime || scope.row.applicationDate}}</span>
           </template>
         </el-table-column>
-        <el-table-column label="服刑人员姓名" min-width="100" prop="prisonerName"></el-table-column>
+        <el-table-column label="服刑人员姓名" min-width="92" prop="prisonerName"></el-table-column>
         <el-table-column label="家属" min-width="116">
           <template slot-scope="scope">
             <div v-if="scope.row.families && scope.row.families.length">
@@ -55,7 +55,7 @@
                 type="text"
                 size="small"
                 v-for="family in scope.row.families"
-                :key="family.familyId+Math.random()*1000+1"
+                :key="family.familyId"
                 style="margin-left: 0px; margin-right: 8px;"
                 @click="showFamilyDetail(family.familyId)">
                 {{family.familyName}}
@@ -223,6 +223,7 @@
         <div style="width: 50%;"><label>审核人姓名：</label><span>{{ toShow.auditRealName }}</span></div>
         <div style="width: 50%;"><label>审核时间：</label><span>{{ toShow.auditAt | Date }}</span></div>
         <div style="width: 50%;"><label>审核状态：</label><span>{{ toShow.status | applyStatus }}</span></div>
+        <div style="width: 50%;"><label>会见时长：</label><span></span></div>
         <div v-if="toShow.status === 'DENIED'" style="width: 100%;"><label>拒绝原因：</label><span>{{ toShow.content }}</span></div>
       </div>
     </el-dialog>
@@ -263,7 +264,6 @@
 </template>
 
 <script>
-// asc desc
 import { mapActions, mapState } from 'vuex'
 import validator, { helper } from '@/utils'
 export default {
@@ -305,7 +305,6 @@ export default {
   },
   watch: {
     tabs(val) {
-      this.sortObj = {}
       if (val !== 'first') {
         this.searchItems.status.miss = true
       }
@@ -324,7 +323,7 @@ export default {
     },
     sortObj: {
       handler: function(val) {
-        // console.log(val.prop, val.order)
+        // this.$parent.$parent.$refs.meetingTable && this.$parent.$parent.$refs.meetingTable.clearSort()
       },
       deep: true
     },
@@ -342,11 +341,18 @@ export default {
       this.getDatas()
     },
     getDatas() {
-      if (!helper.isEmptyObject(this.sortObj)) this.$refs.meetingTable && this.$refs.meetingTable.clearSort()
       if (this.tabs !== 'first') this.filter.status = this.tabs
       this.getMeetings({ ...this.filter, ...this.pagination })
     },
     onSearch() {
+      if (helper.isEmptyObject(this.sortObj)) {
+        this.filter = Object.assign(this.filter, this.sortObj)
+      }
+      else {
+        this.$refs.meetingTable && this.$refs.meetingTable.clearSort()
+        delete this.filter.sortDirection
+        delete this.filter.orderField
+      }
       this.$refs.pagination.handleCurrentChange(1)
     },
     handleAuthorization(e) {
@@ -425,7 +431,7 @@ export default {
       })
     },
     sortChange({ column, prop, order }) {
-      if (prop === null && order === null) {
+      if (!prop && !order) {
         this.sortObj = {}
         delete this.filter.sortDirection
         delete this.filter.orderField
