@@ -19,7 +19,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import 'quill/dist/quill.snow.css'
 import 'viewerjs/dist/viewer.css'
 import '@/assets/css/main.css'
-
+// test git pull request
 Vue.use(ElementUI)
 // Vue.use(VueWebsocket, 'wss://pandax.mofasion.com/ws/7')
 // Vue.use(VueWebsocket, `ws://120.78.190.101/ws/2`)
